@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOP Advanced Quiz — Part 2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Outfit:wght@300;400;600;700;800&display=swap');
+
+  :root {
+    --bg: #070711;
+    --surface: #0f0f1a;
+    --card: #161625;
+    --card2: #1c1c2e;
+    --border: #252540;
+    --border2: #303050;
+    --cyan: #00d4ff;
+    --cyan-dim: #0099bb;
+    --purple: #9d4edd;
+    --purple-dim: #7b2fbe;
+    --green: #39d98a;
+    --red: #ff4757;
+    --amber: #ffa502;
+    --text: #e2e2f0;
+    --text-dim: #7070a0;
+    --text-muted: #404060;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Outfit', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(157,78,221,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 30% at 10% 90%, rgba(0,212,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(7,7,17,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 1.5rem;
+    height: 56px;
+    gap: 1rem;
+  }
+
+  .brand {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding-right: 1rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .tab-row {
+    display: flex; gap: 2px; flex: 1;
+  }
+
+  .qtab {
+    background: transparent;
+    border: none;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 0 1rem;
+    height: 56px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .qtab:hover { color: var(--text); }
+
+  .qtab.active {
+    color: var(--cyan);
+    border-bottom-color: var(--cyan);
+  }
+
+  .qtab.active.b {
+    color: var(--purple);
+    border-bottom-color: var(--purple);
+  }
+
+  .live-score {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .live-score b { color: var(--cyan); }
+
+  /* ── PANELS ── */
+  .panel { display: none; position: relative; z-index: 1; }
+  .panel.active { display: block; }
+
+  /* ── QUIZ HERO ── */
+  .quiz-hero {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 1rem;
+  }
+
+  .badge-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+
+  .badge.cyan { color: var(--cyan); border-color: var(--cyan); background: rgba(0,212,255,0.08); }
+  .badge.purple { color: var(--purple); border-color: var(--purple); background: rgba(157,78,221,0.08); }
+
+  .hero-title {
+    font-size: 1.9rem;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-title .hl { color: var(--cyan); }
+  .hero-title .hl2 { color: var(--purple); }
+
+  .hero-sub {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  /* ── PROGRESS ── */
+  .prog-wrap {
+    margin: 1.5rem 0 0.4rem;
+    position: relative;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .prog-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .prog-fill.cyan { background: linear-gradient(90deg, var(--cyan-dim), var(--cyan)); }
+  .prog-fill.purple { background: linear-gradient(90deg, var(--purple-dim), var(--purple)); }
+
+  .prog-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+  }
+
+  /* ── QUESTION WRAPPER ── */
+  .qwrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  .qcard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem 2rem 1.5rem;
+    margin-bottom: 1rem;
+    animation: fadeUp 0.22s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .qnum {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+  }
+  .qnum.cyan { color: var(--cyan); }
+  .qnum.purple { color: var(--purple); }
+
+  .diff-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+  .diff-easy   { background: rgba(57,217,138,0.12); color: var(--green); }
+  .diff-medium { background: rgba(255,165,2,0.12); color: var(--amber); }
+  .diff-hard   { background: rgba(255,71,87,0.12); color: var(--red); }
+  .diff-trick  { background: rgba(157,78,221,0.15); color: var(--purple); }
+
+  .qtext {
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.65;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+  }
+
+  .codeblock {
+    background: #08080f;
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--cyan);
+    border-radius: 8px;
+    padding: 1.1rem 1.4rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    line-height: 1.75;
+    color: #b0b8d0;
+    margin: 0.75rem 0 1.5rem;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  .codeblock.purple-accent { border-left-color: var(--purple); }
+
+  /* syntax hilight helpers */
+  .kw  { color: #c792ea; }
+  .fn  { color: #82aaff; }
+  .st  { color: #c3e88d; }
+  .nm  { color: #f78c6c; }
+  .cm  { color: #546e7a; }
+
+  .opts { display: flex; flex-direction: column; gap: 0.55rem; }
+
+  .opt {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 0.8rem 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    color: var(--text);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-family: var(--sans);
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  }
+
+  .opt:hover:not(:disabled) {
+    border-color: var(--border2);
+    background: var(--card2);
+    transform: translateX(4px);
+  }
+
+  .ol {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    margin-top: 1px;
+    transition: all 0.15s;
+  }
+
+  .ol.cyan-ol { background: rgba(0,212,255,0.1); color: var(--cyan); }
+  .ol.purple-ol { background: rgba(157,78,221,0.1); color: var(--purple); }
+
+  .opt.correct { border-color: var(--green); background: rgba(57,217,138,0.07); }
+  .opt.correct .ol { background: var(--green); color: #000; }
+  .opt.wrong { border-color: var(--red); background: rgba(255,71,87,0.07); }
+  .opt.wrong .ol { background: var(--red); color: #fff; }
+  .opt:disabled { cursor: default; }
+
+  /* ── FEEDBACK ── */
+  .fb {
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    border-radius: 9px;
+    padding: 1.1rem 1.4rem;
+    margin-top: 0.75rem;
+    display: none;
+    animation: fadeIn 0.18s ease;
+  }
+  @keyframes fadeIn { from{opacity:0}to{opacity:1} }
+  .fb.show { display: block; }
+
+  .fb-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+  .fb-label.ok { color: var(--green); }
+  .fb-label.no { color: var(--red); }
+
+  .fb-exp {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+  .fb-exp strong { color: var(--text); }
+  .fb-exp code {
+    font-family: var(--mono);
+    background: rgba(255,255,255,0.05);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    font-size: 0.78em;
+    color: var(--cyan);
+  }
+
+  /* ── NAV ── */
+  .navrow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .nbtn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.55rem 1.1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .nbtn:hover:not(:disabled) { border-color: var(--border2); color: var(--text); }
+
+  .nbtn.primary-c {
+    background: var(--cyan);
+    border-color: var(--cyan);
+    color: #000;
+    font-weight: 700;
+  }
+  .nbtn.primary-c:hover:not(:disabled) { background: var(--cyan-dim); border-color: var(--cyan-dim); }
+
+  .nbtn.primary-p {
+    background: var(--purple);
+    border-color: var(--purple);
+    color: #fff;
+    font-weight: 700;
+  }
+  .nbtn.primary-p:hover:not(:disabled) { background: var(--purple-dim); border-color: var(--purple-dim); }
+
+  .nbtn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+  .qjump {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--text-dim);
+  }
+
+  /* ── RESULTS ── */
+  .results {
+    display: none;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .results.show { display: block; }
+
+  .res-ring {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    position: relative;
+  }
+
+  .res-ring.cyan { border: 3px solid var(--cyan); box-shadow: 0 0 30px rgba(0,212,255,0.2); }
+  .res-ring.purple { border: 3px solid var(--purple); box-shadow: 0 0 30px rgba(157,78,221,0.2); }
+
+  .res-pct {
+    font-family: var(--mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .cyan .res-pct { color: var(--cyan); }
+  .purple .res-pct { color: var(--purple); }
+
+  .res-pct-label {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+  }
+
+  .res-msg {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .res-sub {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 2rem;
+  }
+
+  .res-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .res-stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 0.75rem;
+  }
+
+  .res-num {
+    font-family: var(--mono);
+    font-size: 1.7rem;
+    font-weight: 700;
+  }
+  .res-num.cyan { color: var(--cyan); }
+  .res-num.purple { color: var(--purple); }
+  .res-num.green { color: var(--green); }
+  .res-num.red { color: var(--red); }
+
+  .res-lbl {
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-top: 0.25rem;
+  }
+
+  .restart {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.85rem 2.5rem;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .restart.cyan { background: var(--cyan); color: #000; }
+  .restart.cyan:hover { background: var(--cyan-dim); }
+  .restart.purple { background: var(--purple); color: #fff; }
+  .restart.purple:hover { background: var(--purple-dim); }
+
+  /* ── REVIEW ── */
+  .rev-section { margin-top: 2.5rem; text-align: left; }
+  .rev-title {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .ri {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 0.6rem;
+    border-left: 3px solid var(--border);
+  }
+  .ri.ok  { border-left-color: var(--green); }
+  .ri.no  { border-left-color: var(--red); }
+
+  .ri-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .ri-q {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.5;
+  }
+
+  .ri-badge {
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.55rem;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .ri-badge.ok { background: rgba(57,217,138,0.12); color: var(--green); }
+  .ri-badge.no { background: rgba(255,71,87,0.12); color: var(--red); }
+
+  .ri-ans {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+  .ri-ans .ca { color: var(--green); }
+  .ri-ans .ya { color: var(--red); }
+  .ri-exp {
+    font-size: 0.73rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+    line-height: 1.55;
+  }
+  .ri-exp strong { color: var(--text); }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  @media(max-width:600px){
+    .res-grid { grid-template-columns: 1fr 1fr; }
+    .hero-title { font-size: 1.4rem; }
+    .topnav { padding: 0 1rem; }
+    .brand { display: none; }
+    .qcard { padding: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="brand">OOP // Part 2</div>
+  <div class="tab-row">
+    <button class="qtab active" onclick="sw(1)">Quiz 2A — Advanced Concepts</button>
+    <button class="qtab b" onclick="sw(2)">Quiz 2B — Coding Samples</button>
+  </div>
+  <div class="live-score" id="hscore">Score: <b>0</b> / <b>0</b></div>
+</nav>
+
+<!-- ══════════════ PANEL 1: QUIZ 2A ══════════════ -->
+<div class="panel active" id="p1">
+  <div class="quiz-hero">
+    <div class="badge-row"><div class="badge cyan">Quiz 2A</div><div class="badge cyan">100 Items</div></div>
+    <div class="hero-title">OOP <span class="hl">Advanced</span> &<br>Application-Based Quiz</div>
+    <div class="hero-sub">Conceptual depth + code analysis · Easy → Trick questions</div>
+    <div class="prog-wrap"><div class="prog-fill cyan" id="prg1"></div></div>
+    <div class="prog-meta"><span id="pcnt1">Question 1 of 100</span><span id="pscr1">0 correct</span></div>
+  </div>
+  <div class="qwrap" id="qa1"></div>
+  <div class="results" id="res1">
+    <div class="res-ring cyan"><div class="res-pct" id="r1p">0%</div><div class="res-pct-label">Score</div></div>
+    <div class="res-msg" id="r1m"></div>
+    <div class="res-sub" id="r1s"></div>
+    <div class="res-grid">
+      <div class="res-stat"><div class="res-num cyan" id="r1pc">—</div><div class="res-lbl">Percent</div></div>
+      <div class="res-stat"><div class="res-num green" id="r1cr">—</div><div class="res-lbl">Correct</div></div>
+      <div class="res-stat"><div class="res-num red" id="r1wr">—</div><div class="res-lbl">Wrong</div></div>
+      <div class="res-stat"><div class="res-num" style="color:var(--text-dim)" id="r1sk">—</div><div class="res-lbl">Skipped</div></div>
+    </div>
+    <button class="restart cyan" onclick="restart(1)">Restart Quiz 2A</button>
+    <div class="rev-section" id="rev1"></div>
+  </div>
+</div>
+
+<!-- ══════════════ PANEL 2: QUIZ 2B ══════════════ -->
+<div class="panel" id="p2">
+  <div class="quiz-hero">
+    <div class="badge-row"><div class="badge purple">Quiz 2B</div><div class="badge purple">100 Items</div></div>
+    <div class="hero-title">OOP Coding Samples <span class="hl2">Part 2</span></div>
+    <div class="hero-sub">Brand-new code snippets · Output tracing · Error detection · Deep analysis</div>
+    <div class="prog-wrap"><div class="prog-fill purple" id="prg2"></div></div>
+    <div class="prog-meta"><span id="pcnt2">Question 1 of 100</span><span id="pscr2">0 correct</span></div>
+  </div>
+  <div class="qwrap" id="qa2"></div>
+  <div class="results" id="res2">
+    <div class="res-ring purple"><div class="res-pct" id="r2p">0%</div><div class="res-pct-label">Score</div></div>
+    <div class="res-msg" id="r2m"></div>
+    <div class="res-sub" id="r2s"></div>
+    <div class="res-grid">
+      <div class="res-stat"><div class="res-num purple" id="r2pc">—</div><div class="res-lbl">Percent</div></div>
+      <div class="res-stat"><div class="res-num green" id="r2cr">—</div><div class="res-lbl">Correct</div></div>
+      <div class="res-stat"><div class="res-num red" id="r2wr">—</div><div class="res-lbl">Wrong</div></div>
+      <div class="res-stat"><div class="res-num" style="color:var(--text-dim)" id="r2sk">—</div><div class="res-lbl">Skipped</div></div>
+    </div>
+    <button class="restart purple" onclick="restart(2)">Restart Quiz 2B</button>
+    <div class="rev-section" id="rev2"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// QUIZ 2A DATA — 100 Advanced/Application OOP Questions
+// ════════════════════════════════════════════════════════════════
+const Q1=[
+// EASY (1-20)
+{d:"easy",q:"Which OOP concept allows you to create a new class based on an existing class?",opts:["Encapsulation","Polymorphism","Inheritance","Abstraction"],a:2,e:"<strong>Inheritance</strong> creates a parent-child relationship between classes, allowing the child to reuse and extend the parent's code."},
+{d:"easy",q:"In Python, what symbol separates the child class from its parent class in a class definition?",opts:["->","::","parentheses ()","colon :"],a:2,e:"Python uses <strong>parentheses</strong>: <code>class Child(Parent):</code> — the parent is listed inside the parentheses."},
+{d:"easy",q:"What does the acronym 'OOP' stand for?",opts:["Object-Oriented Programming","Object-Oriented Protocol","Ordered-Object Programming","Optimized Object Processing"],a:0,e:"OOP stands for <strong>Object-Oriented Programming</strong> — a paradigm based on objects and classes."},
+{d:"easy",q:"Which of the four OOP pillars is most directly related to data hiding?",opts:["Inheritance","Abstraction","Polymorphism","Encapsulation"],a:3,e:"<strong>Encapsulation</strong> bundles data and methods while hiding internal implementation details from outside."},
+{d:"easy",q:"What type of method in Python has access ONLY to class-level data and not instance data?",opts:["Instance method","Static method","Class method","Abstract method"],a:2,e:"A <strong>class method</strong> (decorated with @classmethod) receives <code>cls</code> instead of <code>self</code> and accesses only class-level data."},
+{d:"easy",q:"What is the term for a child class that inherits from more than one parent class?",opts:["Single inheritance","Multi-level inheritance","Multiple inheritance","Hierarchical inheritance"],a:2,e:"<strong>Multiple inheritance</strong> allows a class to inherit from more than one parent class simultaneously."},
+{d:"easy",q:"What Python built-in function checks if an object is an instance of a specific class?",opts:["type()","isinstance()","isclass()","hasattr()"],a:1,e:"<strong>isinstance(obj, ClassName)</strong> returns True if obj is an instance of ClassName or its subclasses."},
+{d:"easy",q:"In Python, what is the name of the method automatically called when an object is deleted?",opts:["__del__","__end__","__close__","__destroy__"],a:0,e:"<strong>__del__</strong> is the destructor method, called when an object is about to be garbage-collected."},
+{d:"easy",q:"What is 'method resolution order' (MRO)?",opts:["The order methods are written in a class","The order Python searches classes to find a method","The order constructors are called","The order objects are created"],a:1,e:"<strong>MRO</strong> defines the sequence Python uses to look up methods and attributes in a class hierarchy, following the C3 linearization algorithm."},
+{d:"easy",q:"What does the 'is' keyword check when used with a class?",opts:["Value equality","Type equality","Object identity","Attribute existence"],a:2,e:"<strong>is</strong> checks <strong>identity</strong> — whether two variables reference the same object in memory."},
+{d:"easy",q:"Which Python keyword allows a subclass to call a method from its parent class?",opts:["parent()","inherit()","super()","base()"],a:2,e:"<strong>super()</strong> provides access to the parent class's methods and constructors from within the child class."},
+{d:"easy",q:"What is the purpose of the '__repr__' method in Python?",opts:["Initialize an object","Delete an object","Return a developer-friendly string representation of the object","Compare two objects"],a:2,e:"<strong>__repr__</strong> returns an unambiguous string representation meant for developers, used by the Python interpreter."},
+{d:"easy",q:"What does it mean for a class to be 'abstract'?",opts:["It cannot be imported","It cannot have any attributes","It cannot be instantiated directly and must be subclassed","It cannot use inheritance"],a:2,e:"An <strong>abstract class</strong> serves as a blueprint and cannot be instantiated directly; subclasses must implement its abstract methods."},
+{d:"easy",q:"What module in Python provides abstract base classes?",opts:["abstract","abc","base","interface"],a:1,e:"The <strong>abc</strong> module (Abstract Base Classes) provides tools for creating abstract classes using <code>ABC</code> and <code>@abstractmethod</code>."},
+{d:"easy",q:"In Python, what does 'private' convention look like for a variable name?",opts:["var!","#var","__var (double underscore)","var__"],a:2,e:"Python uses <strong>name mangling</strong> with double underscores: <code>__var</code> becomes <code>_ClassName__var</code>, making it hard to access from outside."},
+{d:"easy",q:"What is 'composition' in OOP?",opts:["A class that inherits from multiple parents","Building a class by including objects of other classes as attributes","Making methods private","Creating many objects from one class"],a:1,e:"<strong>Composition</strong> is a 'has-a' relationship: a class contains objects of other classes as part of its attributes."},
+{d:"easy",q:"Which principle states 'program to an interface, not an implementation'?",opts:["DRY","SOLID","Inheritance","Polymorphism"],a:3,e:"This relates to <strong>polymorphism</strong> and abstraction — writing code that works with any object that satisfies an interface, regardless of concrete type."},
+{d:"easy",q:"What is a 'getter' method?",opts:["A method that creates objects","A method that reads/returns the value of a private attribute","A method that deletes attributes","A method that imports modules"],a:1,e:"A <strong>getter</strong> is an accessor method that returns the value of a (usually private) attribute safely."},
+{d:"easy",q:"What is a 'setter' method?",opts:["A method that creates a new class","A method that validates and sets the value of a private attribute","A method that prints output","A method that calculates return values"],a:1,e:"A <strong>setter</strong> is a mutator method that validates and assigns a new value to a private attribute."},
+{d:"easy",q:"What relationship does inheritance model?",opts:["has-a","uses-a","is-a","knows-a"],a:2,e:"Inheritance models an <strong>is-a</strong> relationship: a Dog IS-A Animal. Composition models has-a."},
+// MEDIUM (21-60)
+{d:"medium",q:"What is the output of type(None) in Python?",opts:["None","NoneType","<class 'NoneType'>","null"],a:2,e:"<code>type(None)</code> returns <code>&lt;class 'NoneType'&gt;</code> — None's type is NoneType."},
+{d:"medium",q:"What problem does the 'Diamond Problem' refer to in OOP?",opts:["A performance issue with large classes","Ambiguity in method resolution when a class inherits from two classes that share a common ancestor","A circular import error","Memory overflow when creating too many objects"],a:1,e:"The <strong>Diamond Problem</strong> occurs in multiple inheritance when two parent classes share a common ancestor, creating ambiguity about which version of a method to call."},
+{d:"medium",q:"In Python's MRO, what algorithm is used?",opts:["Depth-first search","Breadth-first search","C3 Linearization","Round-robin"],a:2,e:"Python uses the <strong>C3 Linearization</strong> (C3 superclass linearization) algorithm to compute MRO, ensuring consistent and predictable method resolution."},
+{d:"medium",q:"What is operator overloading?",opts:["Defining the same operator for built-in types","Giving new meaning to existing Python operators for custom classes via dunder methods","Using an operator more than once in an expression","Overriding a method in a child class"],a:1,e:"<strong>Operator overloading</strong> uses dunder (double-underscore) methods like <code>__add__</code>, <code>__eq__</code> to define how operators work with custom objects."},
+{d:"medium",q:"What dunder method must be defined to make objects comparable with ==?",opts:["__compare__","__equals__","__eq__","__is__"],a:2,e:"<strong>__eq__(self, other)</strong> defines what == means between two instances of your class."},
+{d:"medium",q:"What is the key difference between 'overloading' and 'overriding'?",opts:["They are the same thing","Overloading is in child classes; overriding is in the same class","Overriding replaces a parent's method in a subclass; overloading gives the same function name multiple behaviors (Python uses default args for this)","Overloading uses more memory"],a:2,e:"<strong>Overriding</strong> redefines a parent method in a child class. Python doesn't have true overloading; default arguments simulate it."},
+{d:"medium",q:"In Python, what happens when a subclass defines an __init__ without calling super().__init__()?",opts:["Python automatically calls the parent's __init__","The parent's attributes are NOT initialized in the child object","An error is raised","The child __init__ is ignored"],a:1,e:"If <code>super().__init__()</code> is NOT called, the <strong>parent class attributes will not be set</strong> in the child object."},
+{d:"medium",q:"Which concept allows the same method name to behave differently based on the object it's called on?",opts:["Inheritance","Encapsulation","Polymorphism","Abstraction"],a:2,e:"<strong>Polymorphism</strong> allows different classes to have the same method name but different implementations."},
+{d:"medium",q:"What is duck typing in Python?",opts:["A class that inherits from Duck","Checking types before calling methods","If an object has the required methods/attributes, it can be used regardless of its actual type","Defining methods in an interface"],a:2,e:"<strong>Duck typing</strong>: 'If it walks like a duck and quacks like a duck, it is a duck.' Python cares about what an object can do, not what it is."},
+{d:"medium",q:"What is the output of isinstance(True, int) in Python?",opts:["False","True","Error","None"],a:1,e:"In Python, <strong>bool is a subclass of int</strong>. So isinstance(True, int) returns <strong>True</strong>. This is a classic trick question!"},
+{d:"medium",q:"What is the purpose of the @property decorator in Python?",opts:["Marks a method as a class method","Makes a method behave like an attribute when accessed","Marks an attribute as private","Creates a static variable"],a:1,e:"<strong>@property</strong> lets you define a method that is accessed like an attribute (no parentheses), enabling controlled access."},
+{d:"medium",q:"What does __slots__ do in a Python class?",opts:["Creates a slot machine game","Limits which attributes an instance can have, saving memory","Defines abstract methods","Creates class variables"],a:1,e:"<strong>__slots__</strong> explicitly declares which instance attributes are allowed, preventing creation of __dict__ and saving memory."},
+{d:"medium",q:"What is method chaining?",opts:["Calling the same method twice","Each method returns self so multiple methods can be called in sequence on the same object","Inheriting methods from multiple parents","Calling parent and child methods together"],a:1,e:"<strong>Method chaining</strong> works when methods return <code>self</code>, enabling: <code>obj.method1().method2().method3()</code>."},
+{d:"medium",q:"Which of these is a mixin class?",opts:["A class that inherits from all built-in types","A small class providing specific functionality meant to be mixed into other classes via multiple inheritance","A class that cannot be instantiated","A class that uses __slots__"],a:1,e:"A <strong>mixin</strong> is a small, reusable class that provides specific behavior (like serialization, logging) mixed into other classes."},
+{d:"medium",q:"What does the 'Liskov Substitution Principle' state?",opts:["A child class should be replaceable for its parent without breaking the program","Classes must have private attributes","Methods must return the same type as their parameters","All classes must inherit from object"],a:0,e:"<strong>LSP</strong> (the 'L' in SOLID): objects of a subclass should be usable wherever the parent class is expected, without altering program correctness."},
+{d:"medium",q:"What is the 'Single Responsibility Principle'?",opts:["A class should inherit from only one parent","A class should have only one method","A class should have only one reason to change / one job","A function should have one parameter"],a:2,e:"<strong>SRP</strong> (the 'S' in SOLID): a class should do one thing and have one reason to change, keeping concerns separated."},
+{d:"medium",q:"What is shallow copying vs deep copying of objects?",opts:["Shallow copies are faster; deep copies are slower — they are otherwise identical","Shallow copy creates a new container but references the same inner objects; deep copy recursively copies all nested objects","Shallow copy uses less memory; deep copy uses more","They are the same operation"],a:1,e:"<strong>Shallow copy</strong> creates a new object but inner objects are shared. <strong>Deep copy</strong> (copy.deepcopy) creates fully independent copies of all nested objects."},
+{d:"medium",q:"What is the result of calling a method on None?",opts:["Returns None","Returns 0","Raises AttributeError","Raises TypeError"],a:0,e:"Calling a method on None raises <strong>AttributeError</strong>: 'NoneType' object has no attribute 'method_name'."},
+{d:"medium",q:"What is 'monkey patching' in Python?",opts:["Adding a method to an existing class at runtime","Writing buggy code","Inheriting from multiple base classes","Defining abstract methods"],a:0,e:"<strong>Monkey patching</strong> means dynamically adding or modifying attributes/methods of a class or instance at runtime."},
+{d:"medium",q:"In Python, every class implicitly inherits from which base class?",opts:["BaseClass","Root","object","None"],a:2,e:"In Python 3, every class implicitly inherits from <strong>object</strong> — the base class of all new-style classes."},
+{d:"medium",q:"What is the __mro__ attribute?",opts:["A list of all methods in a class","A tuple showing the method resolution order of a class","A list of all attributes in a class","A dictionary of class variables"],a:1,e:"<strong>__mro__</strong> is a tuple stored on the class showing the order in which Python searches the class hierarchy for methods."},
+{d:"medium",q:"What principle does encapsulation most closely relate to?",opts:["Code reuse","Data hiding and information hiding","Method overriding","Multiple inheritance"],a:1,e:"<strong>Encapsulation</strong> is fundamentally about <strong>data hiding</strong> — restricting direct access to some components of an object."},
+{d:"medium",q:"What is the Fibonacci sequence relationship between fib(n) = fib(n-1) + fib(n-2) an example of?",opts:["Iteration","Encapsulation","Recursion","Polymorphism"],a:2,e:"Defining fib(n) in terms of fib(n-1) and fib(n-2) is the classic example of <strong>recursion</strong> — a function calling itself."},
+{d:"medium",q:"What error occurs when a recursive function has no base case?",opts:["ValueError","RecursionError (maximum recursion depth exceeded)","IndexError","AttributeError"],a:1,e:"Without a base case, Python will eventually raise <strong>RecursionError: maximum recursion depth exceeded</strong>."},
+{d:"medium",q:"What is 'name mangling' in Python?",opts:["Giving variables confusing names","Python's mechanism to make attributes with __ prefix pseudo-private by renaming them","Converting variable names to lowercase","Encrypting class names"],a:1,e:"<strong>Name mangling</strong>: <code>__attr</code> in a class becomes <code>_ClassName__attr</code>, making accidental external access harder."},
+{d:"medium",q:"Which of the following correctly describes a class decorator?",opts:["A method inside a class","A function that takes a class and returns a modified class","A method that uses @staticmethod","A class with no __init__"],a:1,e:"A <strong>class decorator</strong> is a function applied with @ that receives a class object and returns a new (possibly modified) class."},
+{d:"medium",q:"In OOP, what is a 'factory method'?",opts:["A method that destroys objects","A class method that creates and returns an instance of the class","A static method that calculates values","A method that sorts objects"],a:1,e:"A <strong>factory method</strong> is a class method (@classmethod) that provides an alternative way to construct objects."},
+{d:"medium",q:"What does SOLID stand for in software design?",opts:["Single, Open, Liskov, Interface, Dependency","Strong, Object, Linked, Instance, Derived","Simple, Optimized, Layered, Interface, Dynamic","Secure, Open, Lightweight, Integrated, Dependency"],a:0,e:"<strong>SOLID</strong>: Single responsibility, Open/closed, Liskov substitution, Interface segregation, Dependency inversion."},
+{d:"medium",q:"What is the 'Open/Closed Principle'?",opts:["Classes should be open for modification and closed for extension","Classes should be open for extension but closed for modification","Classes should not have any open attributes","Methods should return only True or False"],a:1,e:"<strong>OCP</strong>: software entities should be <strong>open for extension</strong> (add new features) but <strong>closed for modification</strong> (don't change existing code)."},
+{d:"medium",q:"What is 'tight coupling' in OOP?",opts:["Classes being completely independent","Classes being so dependent on each other that changing one breaks another","Classes using the same parent","Methods sharing the same name"],a:1,e:"<strong>Tight coupling</strong> means classes are highly dependent — changing one forces changes in others. Loose coupling is preferred."},
+{d:"medium",q:"What is a 'data class' in Python (Python 3.7+)?",opts:["A class that only has class variables","A class decorated with @dataclass that auto-generates __init__, __repr__, and __eq__","A class that extends the dict type","A class that cannot be inherited"],a:1,e:"<strong>@dataclass</strong> automatically generates boilerplate methods like __init__, __repr__, and __eq__ based on annotated class attributes."},
+{d:"medium",q:"Which of the following is NOT a valid dunder/magic method?",opts:["__init__","__len__","__add__","__create__"],a:3,e:"<strong>__create__</strong> is not a valid dunder method. The others are: __init__ (constructor), __len__ (len()), __add__ (+ operator)."},
+{d:"medium",q:"What does hasattr(obj, 'name') do?",opts:["Creates an attribute 'name' on obj","Returns True if obj has attribute 'name', False otherwise","Returns the value of obj.name","Deletes the attribute 'name' from obj"],a:1,e:"<strong>hasattr(obj, 'name')</strong> returns True if the object has the given attribute, False otherwise — without raising an error."},
+{d:"medium",q:"What does getattr(obj, 'attr', default) do?",opts:["Sets an attribute","Returns the attribute value or default if it doesn't exist","Deletes an attribute","Checks attribute type"],a:1,e:"<strong>getattr(obj, 'attr', default)</strong> retrieves an attribute's value; if it doesn't exist, returns the default instead of raising AttributeError."},
+{d:"medium",q:"What is the difference between a class method and a static method?",opts:["They are identical","Class method receives cls as first arg; static method receives no implicit argument","Static method can modify class variables; class method cannot","Class methods use @staticmethod decorator"],a:1,e:"<strong>@classmethod</strong> receives <code>cls</code> (the class). <strong>@staticmethod</strong> receives no implicit first argument and is essentially a namespace function."},
+{d:"medium",q:"What is 'late binding' (dynamic dispatch) in Python?",opts:["Methods are resolved at compile time","Methods are resolved at runtime based on the actual type of the object","Variables are assigned late in the code","Constructors run after all methods"],a:1,e:"<strong>Late binding / dynamic dispatch</strong>: Python resolves which method to call at <strong>runtime</strong> based on the actual object type, enabling polymorphism."},
+{d:"medium",q:"What happens when you print an object without defining __str__?",opts:["Python raises an error","Prints the object's attributes","Prints something like <ClassName object at 0x...>","Prints None"],a:2,e:"Without __str__, Python uses the default representation: <strong>&lt;ClassName object at 0xADDRESS&gt;</strong>."},
+{d:"medium",q:"In Python, which of the following creates a read-only property?",opts:["Defining only a @property getter without a setter","Using __readonly__ = True","Declaring the attribute as a class variable","Using the @staticmethod decorator"],a:0,e:"A <strong>read-only property</strong> is created by defining only a <code>@property</code> getter. Attempting to set it raises AttributeError."},
+{d:"medium",q:"What is the purpose of the __call__ dunder method?",opts:["Call the parent class constructor","Make an instance of a class callable like a function","Override the + operator","Initialize class variables"],a:1,e:"<strong>__call__</strong> makes an object callable: <code>obj()</code> will invoke <code>obj.__call__()</code>."},
+// HARD (61-80)
+{d:"hard",q:"[TRICK] What is the output of: class A: pass; class B(A): pass; print(issubclass(A, B))?",opts:["True","False","Error","None"],a:1,e:"<strong>issubclass(A, B)</strong> asks 'Is A a subclass of B?' — No, it's the other way around. Returns <strong>False</strong>."},
+{d:"hard",q:"[TRICK] In Python, what does print(bool.__bases__) output?",opts:["(<class 'object'>,)","(<class 'int'>,)","(<class 'int'>, <class 'object'>)","Error"],a:1,e:"<strong>bool</strong> inherits directly from <code>int</code>: <code>bool.__bases__</code> = <strong>(&lt;class 'int'&gt;,)</strong>."},
+{d:"hard",q:"What does the Dependency Inversion Principle state?",opts:["High-level modules should depend on low-level modules","Both high and low-level modules should depend on abstractions, not concretions","Dependencies must be injected into constructors","Methods should not depend on parameters"],a:1,e:"<strong>DIP</strong>: High-level modules should NOT depend on low-level modules. Both should depend on <strong>abstractions</strong> (interfaces/abstract classes)."},
+{d:"hard",q:"What is 'method hiding' vs 'method overriding'?",opts:["They are the same thing","Overriding replaces the method via polymorphism; hiding only hides it when accessed through the child reference","Method hiding uses super(); overriding uses self","Hiding applies to static methods; overriding to instance methods"],a:1,e:"<strong>Method hiding</strong>: static/class methods can be 'hidden' in subclasses without polymorphic dispatch. <strong>Method overriding</strong> uses dynamic dispatch."},
+{d:"hard",q:"[TRICK] If class B(A) and both define __init__, what does B() do WITHOUT calling super().__init__()?",opts:["Calls A's __init__ automatically","Only B's __init__ runs; A's attributes are NOT set","Raises TypeError","Calls both __init__ methods automatically"],a:1,e:"Without <code>super().__init__()</code>, Python only runs <strong>B's __init__</strong>. The parent's attributes (from A.__init__) are never set."},
+{d:"hard",q:"What is 'cohesion' in OOP design?",opts:["How tightly classes are coupled together","How closely related and focused the responsibilities of a class are","The number of methods in a class","How well classes are documented"],a:1,e:"<strong>Cohesion</strong> measures how closely related a class's methods are. High cohesion (one focused job) is good design."},
+{d:"hard",q:"What is the Interface Segregation Principle (ISP)?",opts:["Interfaces must be implemented in all subclasses","Clients should not be forced to depend on methods they don't use; prefer many small interfaces over one large one","All methods must be public","Abstract classes must implement all methods"],a:1,e:"<strong>ISP</strong>: Don't force classes to implement methods they don't need. Split large interfaces into smaller, specific ones."},
+{d:"hard",q:"Which design pattern creates objects without specifying the exact class to create?",opts:["Singleton","Observer","Factory Method / Abstract Factory","Decorator"],a:2,e:"The <strong>Factory Method</strong> and <strong>Abstract Factory</strong> patterns create objects without tying code to specific concrete classes."},
+{d:"hard",q:"What is the Singleton design pattern?",opts:["A class that can only be instantiated once; all calls return the same instance","A class with only one method","A class that inherits from one parent","A class with a single attribute"],a:0,e:"The <strong>Singleton</strong> pattern ensures a class has only <strong>one instance</strong> and provides a global point of access to it."},
+{d:"hard",q:"What is the Observer design pattern?",opts:["A class that observes exceptions","When one object (subject) changes state, all dependent objects (observers) are automatically notified","A class that monitors memory usage","A parent class watching all child classes"],a:1,e:"The <strong>Observer</strong> pattern implements a publish-subscribe mechanism: subjects notify observers of state changes automatically."},
+{d:"hard",q:"[TRICK] What is the difference between __str__ and __repr__?",opts:["They are identical","__str__ is for end-users (readable); __repr__ is for developers (unambiguous, ideally eval-able)","__repr__ is called by print(); __str__ by repr()","__str__ is only for strings; __repr__ works on all types"],a:1,e:"<strong>__str__</strong>: human-readable output for end users. <strong>__repr__</strong>: unambiguous developer representation, ideally <code>eval(repr(obj)) == obj</code>."},
+{d:"hard",q:"What is a 'descriptor' in Python?",opts:["A docstring for a class","An object that defines __get__, __set__, __delete__ to customize attribute access","A type of decorator","A method that describes the class"],a:1,e:"A <strong>descriptor</strong> is an object that defines attribute access protocol via <code>__get__</code>, <code>__set__</code>, and/or <code>__delete__</code>. Properties use descriptors internally."},
+{d:"hard",q:"What is 'multiple dispatch' (not native to Python)?",opts:["Calling multiple methods at once","Method resolution based on the types of multiple arguments, not just the receiver","Inheriting from multiple classes","Calling super() multiple times"],a:1,e:"<strong>Multiple dispatch</strong> chooses which method to call based on the runtime types of <strong>multiple arguments</strong>. Python's single dispatch only uses the first argument."},
+{d:"hard",q:"What is a 'metaclass' in Python?",opts:["A class with many attributes","A class that defines the behavior of other classes (a class's class)","A parent class for abstract classes","A class that cannot be instantiated"],a:1,e:"A <strong>metaclass</strong> is the 'class of a class' — it defines how classes themselves are created and can customize class creation behavior."},
+{d:"hard",q:"What is the difference between 'aggregation' and 'composition' in OOP?",opts:["They are the same","Aggregation is a strong has-a (child dies with parent); composition is weak has-a (child can exist independently)","Composition is strong (child dies with parent); aggregation is weak (child can exist independently)","Aggregation uses inheritance; composition uses objects"],a:2,e:"<strong>Composition</strong>: strong ownership — child cannot exist without parent (car engine). <strong>Aggregation</strong>: weak ownership — child can exist independently (team and player)."},
+{d:"hard",q:"[TRICK] What does: class X: x = [] and then a=X(); b=X(); a.x.append(1); print(b.x) produce?",opts:["[]","[1]","Error","None"],a:1,e:"<strong>x = []</strong> is a class variable (shared mutable list). Modifying it via any instance modifies the shared object: <strong>[1]</strong>."},
+{d:"hard",q:"What is 'covariance' in OOP return types?",opts:["A method that returns self","Allowing a subclass method to return a more specific (subtype) return type than declared in the parent","Allowing a method to return multiple values","Returning the same type always"],a:1,e:"<strong>Covariance</strong> means subclass methods can return a <strong>more specific subtype</strong> than the parent's declared return type."},
+{d:"hard",q:"What is the Decorator design pattern (not the Python decorator)?",opts:["Using @property","Attaching additional responsibilities to objects dynamically without subclassing","Creating singleton instances","Overriding parent methods"],a:1,e:"The <strong>Decorator pattern</strong> wraps an object to add new behavior without modifying the original class — a form of dynamic composition."},
+{d:"hard",q:"What is a 'generator' and how does it relate to OOP?",opts:["A class that generates random numbers","A function using yield that creates an iterator object implementing __iter__ and __next__","A method that creates new class instances","A class variable that auto-increments"],a:1,e:"A <strong>generator</strong> uses <code>yield</code> to produce an iterator object. It implicitly implements the iterator protocol (__iter__ and __next__)."},
+{d:"hard",q:"[TRICK] If __eq__ is defined but __hash__ is not, what happens?",opts:["__hash__ is inherited from object","Python sets __hash__ to None, making the object unhashable","Python auto-generates __hash__","An error is raised at class definition"],a:1,e:"When you define <code>__eq__</code> without <code>__hash__</code>, Python automatically sets <code>__hash__ = None</code>, making instances <strong>unhashable</strong> (can't be used as dict keys or in sets)."},
+// TRICK/ADVANCED (81-100)
+{d:"trick",q:"[TRICK] What does Python's 'everything is an object' mean in context of OOP?",opts:["Only user-defined classes are objects","Even functions, classes, modules, and built-in types are objects with attributes and methods","Only integers and strings are objects","None is not an object"],a:1,e:"In Python, <strong>everything</strong> — integers, strings, functions, classes, modules — is an object with a type and attributes. Even <code>int</code> is an object."},
+{d:"trick",q:"[TRICK] What is the output of: print(type(type))?",opts:["<class 'object'>","<class 'type'>","<class 'class'>","<class 'meta'>"],a:1,e:"<code>type</code> is its own metaclass: <code>type(type)</code> returns <strong>&lt;class 'type'&gt;</strong>. This is the foundation of Python's object model."},
+{d:"trick",q:"[TRICK] class A: def method(self): return 1; a = A(); A.method = lambda self: 2; print(a.method()). What prints?",opts:["1","2","Error","None"],a:1,e:"Monkey patching replaces A.method at runtime. Since Python does <strong>late binding</strong>, <code>a.method()</code> calls the new lambda: <strong>2</strong>."},
+{d:"trick",q:"What is the difference between __new__ and __init__?",opts:["They are identical","__new__ creates the object (allocates memory); __init__ initializes it (sets attributes)","__init__ creates; __new__ initializes","__new__ is only for metaclasses"],a:1,e:"<code>__new__</code> is called first and <strong>creates</strong> the instance. <code>__init__</code> is called next and <strong>initializes</strong> the already-created instance."},
+{d:"trick",q:"[TRICK] If a class has only class variables and no __init__, what are the instance variables?",opts:["None — instances only have class variables","Instances auto-inherit all class variables as instance variables","An AttributeError is raised","Instances cannot be created"],a:0,e:"Without __init__ setting instance variables, instances have <strong>no instance variables</strong>. They can still access class variables via the instance."},
+{d:"trick",q:"What is 'cooperative multiple inheritance' in Python?",opts:["Multiple classes cooperating in different files","Using super() consistently across all classes in the hierarchy so MRO ensures eac... (37 KB left)

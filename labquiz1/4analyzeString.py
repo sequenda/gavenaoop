@@ -16,7 +16,7 @@ def analyze_string(text):
         'digits': count_digit   
     }
 
-text_test = "Test@123"
-result = analyze_string(text_test)
+# text_test = "Test@123"
+# result = analyze_string(text_test)
 
-print(result)
+# print(result)
